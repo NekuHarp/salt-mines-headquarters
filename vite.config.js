@@ -11,4 +11,13 @@ export default defineConfig({
         port: 5173,
         strictPort: true,
     },
+    // Read by Vitest; Vite itself ignores the key.
+    test: {
+        // Every suite covers pure functions, so there is no DOM to stand up.
+        environment: "node",
+        include: ["src/**/*.test.js"],
+        // `format.js` builds its Intl formatters at module scope, so the
+        // rendered dates depend on the machine's zone unless it is pinned.
+        env: { TZ: "UTC" },
+    },
 });

@@ -39,34 +39,46 @@ export function favouriteWon(prediction) {
 }
 
 /**
+ * Whether a placed bet came in, or null when no bet was placed.
+ *
+ * Kept apart from the profit because it needs far less to answer: the winning
+ * side is recorded on every match, so a bet's outcome is known even when the
+ * pots that would size its payout are not.
+ */
+export function betWon(prediction) {
+    const { selectedPlayer, wager, winner } = prediction;
+
+    if (!selectedPlayer || !wager) return null;
+
+    return selectedPlayer === SELECTED_PLAYERS.P1
+        ? winner === MATCH_WINNERS.P1
+        : winner === MATCH_WINNERS.P2;
+}
+
+/**
  * Realised profit on a single bet, in Salty Bet dollars.
  *
  * Salty Bet is parimutuel: winners split the losing pot in proportion to their
  * stake, so a winning bet returns `wager * loserPot / winnerPot` on top of the
  * stake, and a losing bet returns nothing.
  *
- * Returns null when the profit cannot be known: no bet was placed, or the pots
- * were never captured (the API reports 0 for both until betting locks, and the
- * columns stay null if that read was missed).
+ * Returns null when the profit cannot be known: no bet was placed, or the bet
+ * won but the pots were never captured (the API reports 0 for both until
+ * betting locks, and the columns stay null if that read was missed). A loss
+ * needs no pots at all — it costs exactly the wager either way.
  */
 export function realisedProfit(prediction) {
-    const { selectedPlayer, wager, p1Total, p2Total, winner } = prediction;
+    const { wager, p1Total, p2Total, winner } = prediction;
 
-    if (!selectedPlayer || !wager) return null;
+    const won = betWon(prediction);
 
-    const betOnP1 = selectedPlayer === SELECTED_PLAYERS.P1;
-    const betWon =
-        (betOnP1 && winner === MATCH_WINNERS.P1) ||
-        (!betOnP1 && winner === MATCH_WINNERS.P2);
-
-    if (!betWon) return -wager;
+    if (won === null) return null;
+    if (!won) return -wager;
 
     if (!p1Total || !p2Total) return null;
 
     const winnerPot = winner === MATCH_WINNERS.P1 ? p1Total : p2Total;
     const loserPot = winner === MATCH_WINNERS.P1 ? p2Total : p1Total;
-
-    if (!winnerPot) return null;
 
     return (wager * loserPot) / winnerPot;
 }
@@ -155,8 +167,15 @@ export function calibrationBuckets(predictions) {
 /**
  * Betting performance: staked, returned, and the ratio between them.
  *
- * Rows whose profit can't be determined are counted separately rather than
- * folded in as zero, so an ROI is never quietly computed over a partial sample.
+ * The figures deliberately use two different denominators. Whether a bet came
+ * in is recorded for every match, so `winRate` covers all of them. Sizing a
+ * payout needs the pots, so `staked`, `profit` and `roi` cover only the bets
+ * that settled, and `unknownProfit` counts the ones left out.
+ *
+ * Keeping them apart matters because the unsettled rows are not a random
+ * sample. A loss costs exactly the wager whatever the pots did, so only a *win*
+ * can ever go unsettled — a win rate taken over the settled rows alone would
+ * drop wins and no losses at all, and understate itself every time.
  */
 export function bettingSummary(predictions) {
     const bets = predictions.filter(
@@ -169,6 +188,8 @@ export function bettingSummary(predictions) {
     let unknownProfit = 0;
 
     bets.forEach((prediction) => {
+        if (betWon(prediction)) won++;
+
         const result = realisedProfit(prediction);
 
         if (result === null) {
@@ -178,18 +199,15 @@ export function bettingSummary(predictions) {
 
         staked += prediction.wager;
         profit += result;
-        if (result > 0) won++;
     });
-
-    const settled = bets.length - unknownProfit;
 
     return {
         betCount: bets.length,
-        settledCount: settled,
+        settledCount: bets.length - unknownProfit,
         unknownProfit,
         staked,
         profit,
-        winRate: settled ? won / settled : null,
+        winRate: bets.length ? won / bets.length : null,
         roi: staked ? profit / staked : null,
     };
 }

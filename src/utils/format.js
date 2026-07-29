@@ -54,6 +54,19 @@ export function formatDate(value) {
 }
 
 /**
+ * Abbreviation tiers, largest first. Nothing sits above `B`, so a value that
+ * rounds up out of it simply keeps counting in billions.
+ */
+const COMPACT_TIERS = [
+    { divisor: 1_000_000_000, suffix: "B", fractionDigits: 2 },
+    { divisor: 1_000_000, suffix: "M", fractionDigits: 2 },
+    { divisor: 1_000, suffix: "k", fractionDigits: 1 },
+];
+
+/** Below this the number is shown in full; abbreviating it would buy nothing. */
+const COMPACT_FLOOR = 10_000;
+
+/**
  * Salty Bet balances reach the hundreds of millions, which is too wide for a
  * stat tile, so large values are abbreviated. Tables keep the full number.
  */
@@ -61,12 +74,21 @@ export function formatCompact(value) {
     if (isMissing(value)) return EMPTY;
 
     const magnitude = Math.abs(value);
-    if (magnitude >= 1_000_000_000)
-        return `${(value / 1_000_000_000).toFixed(2)}B`;
-    if (magnitude >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
-    if (magnitude >= 10_000) return `${(value / 1_000).toFixed(1)}k`;
+    if (magnitude < COMPACT_FLOOR) return integerFormatter.format(value);
 
-    return integerFormatter.format(value);
+    const index = COMPACT_TIERS.findIndex((tier) => magnitude >= tier.divisor);
+    const tier = COMPACT_TIERS.at(index);
+
+    // The tier comes from the raw magnitude, but rounding can carry a value up
+    // out of it: 999,999 split into thousands renders as "1000.0k", naming a
+    // unit it never reached. When that happens it belongs one tier higher.
+    const carries =
+        Number((magnitude / tier.divisor).toFixed(tier.fractionDigits)) >= 1000;
+    const chosen = carries && index > 0 ? COMPACT_TIERS.at(index - 1) : tier;
+
+    const scaled = (value / chosen.divisor).toFixed(chosen.fractionDigits);
+
+    return `${scaled}${chosen.suffix}`;
 }
 
 /**
