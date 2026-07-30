@@ -5,14 +5,12 @@ import { request } from "./client";
 /**
  * `GET /fighters` — returns `{ count, rows }` from Sequelize's findAndCountAll.
  *
- * Note that `name` is an exact-match filter, not a substring one: the API's
- * fighter validator declares it as a plain string, so the `contains` operator
- * available on other resources is not accepted here.
+ * `name` takes the operator array syntax, so pass `["contains", text]` to search
+ * by substring. A bare string is an exact match.
  */
 export const fightersQuery = (params) => ({
     queryKey: queryKeys.fighters.list(params),
-    queryFn: ({ signal }) =>
-        request(API_ROUTES.Fighter, { params, signal }),
+    queryFn: ({ signal }) => request(API_ROUTES.Fighter, { params, signal }),
 });
 
 export const fighterQuery = (uuid) => ({

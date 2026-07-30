@@ -15,6 +15,11 @@ import { EMPTY, formatCompact, formatRatio } from "../../utils/format";
 // don't do.
 const NUMERIC = { fontVariantNumeric: "tabular-nums" };
 
+/** Whether any mode has bets the profit columns had to leave out. */
+function hasUnsettledBets(summaries) {
+    return summaries.some((summary) => summary.betting.unknownProfit > 0);
+}
+
 /**
  * Per-mode breakdown.
  *
@@ -46,6 +51,7 @@ export function ModeSummaryTable({ summaries }) {
                                 <TableCell align="right">Accuracy</TableCell>
                                 <TableCell align="right">Brier</TableCell>
                                 <TableCell align="right">Bets</TableCell>
+                                <TableCell align="right">Bets won</TableCell>
                                 <TableCell align="right">Profit</TableCell>
                                 <TableCell align="right">ROI</TableCell>
                             </TableRow>
@@ -69,6 +75,9 @@ export function ModeSummaryTable({ summaries }) {
                                         {summary.betting.betCount}
                                     </TableCell>
                                     <TableCell align="right" sx={NUMERIC}>
+                                        {formatRatio(summary.betting.winRate)}
+                                    </TableCell>
+                                    <TableCell align="right" sx={NUMERIC}>
                                         {summary.betting.settledCount
                                             ? formatCompact(
                                                   summary.betting.profit,
@@ -83,6 +92,26 @@ export function ModeSummaryTable({ summaries }) {
                         </TableBody>
                     </Table>
                 )}
+
+                {/* The two betting columns count different sets, which is worth
+                    saying outright rather than leaving as a discrepancy the
+                    reader has to notice and explain to themselves. */}
+                {summaries.length > 0 && hasUnsettledBets(summaries) ? (
+                    <Typography
+                        variant="caption"
+                        sx={{ color: "text.secondary", display: "block", mt: 2 }}
+                    >
+                        Bets won covers every bet placed. Profit and ROI cover
+                        only those whose betting pots were captured, so they
+                        leave out{" "}
+                        {summaries.reduce(
+                            (total, summary) =>
+                                total + summary.betting.unknownProfit,
+                            0,
+                        )}{" "}
+                        of them.
+                    </Typography>
+                ) : null}
             </CardContent>
         </Card>
     );

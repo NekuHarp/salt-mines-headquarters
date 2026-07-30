@@ -80,6 +80,13 @@ export const POLL_INTERVALS = Object.freeze({
     BALANCE: 30000,
 });
 
+/**
+ * How long a text filter waits after the last keystroke before querying, in
+ * milliseconds. Long enough to skip the prefixes of a word being typed, short
+ * enough not to feel like lag.
+ */
+export const SEARCH_DEBOUNCE_MS = 300;
+
 export const INPUT_VALIDATION = Object.freeze({
     REQUIRED: "This field is required.",
     REQUIRED_SHORT: "Required.",

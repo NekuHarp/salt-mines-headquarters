@@ -1,11 +1,20 @@
-import { Alert, Card, Stack, TextField } from "@mui/material";
-import { formatDateTime, formatInteger, formatRatio, winRate } from "../../utils/format";
+import { Card, IconButton, InputAdornment, TextField } from "@mui/material";
+import {
+    formatDateTime,
+    formatInteger,
+    formatRatio,
+    winRate,
+} from "../../utils/format";
 import { useMemo, useState } from "react";
 
+import ClearIcon from "@mui/icons-material/Clear";
 import { DataTable } from "../../components/DataTable";
 import Page from "../../components/Page";
 import { QueryState } from "../../components/QueryState";
+import { SEARCH_DEBOUNCE_MS } from "../../constants";
+import SearchIcon from "@mui/icons-material/Search";
 import { fightersQuery } from "../../api/fighters";
+import { useDebouncedValue } from "../../hooks/useDebouncedValue";
 import { useListParams } from "../../hooks/useListParams";
 import { useQuery } from "@tanstack/react-query";
 
@@ -54,11 +63,15 @@ const COLUMNS = [
 ];
 
 export function FightersPage() {
-    const [name, setName] = useState("");
+    const [search, setSearch] = useState("");
+    const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
 
-    // The API's fighter validator declares `name` as a plain string, so this is
-    // an exact match — there is no `contains` operator available on this field.
-    const filters = useMemo(() => (name ? { name } : {}), [name]);
+    // `contains` is the API's substring operator, sent in its array filter
+    // syntax; the client serialises this to `name[]=contains&name[]=<value>`.
+    const filters = useMemo(
+        () => (debouncedSearch ? { name: ["contains", debouncedSearch] } : {}),
+        [debouncedSearch],
+    );
 
     const listParams = useListParams({ defaultSort: "-matches", filters });
     const query = useQuery(fightersQuery(listParams.params));
@@ -69,40 +82,55 @@ export function FightersPage() {
             subtitle="Every fighter the listener has recorded a result for."
             action={
                 <TextField
-                    label="Exact name"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
+                    label="Search name"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
                     sx={{ minWidth: 260 }}
+                    slotProps={{
+                        input: {
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon
+                                        fontSize="small"
+                                        sx={{ color: "text.disabled" }}
+                                    />
+                                </InputAdornment>
+                            ),
+                            endAdornment: search ? (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        size="small"
+                                        edge="end"
+                                        aria-label="Clear search"
+                                        onClick={() => setSearch("")}
+                                    >
+                                        <ClearIcon fontSize="small" />
+                                    </IconButton>
+                                </InputAdornment>
+                            ) : null,
+                        },
+                    }}
                 />
             }
         >
-            <Stack spacing={2}>
-                {name ? (
-                    <Alert severity="info" variant="outlined">
-                        The API matches fighter names exactly, so partial names
-                        return nothing. Clear the field to browse all fighters.
-                    </Alert>
-                ) : null}
-
-                <Card>
-                    <QueryState query={query} minHeight={320}>
-                        {(data) => (
-                            <DataTable
-                                columns={COLUMNS}
-                                rows={data.rows}
-                                count={data.count}
-                                listParams={listParams}
-                                isFetching={query.isFetching}
-                                emptyMessage={
-                                    name
-                                        ? `No fighter is named exactly "${name}".`
-                                        : "No fighters recorded yet."
-                                }
-                            />
-                        )}
-                    </QueryState>
-                </Card>
-            </Stack>
+            <Card>
+                <QueryState query={query} minHeight={320}>
+                    {(data) => (
+                        <DataTable
+                            columns={COLUMNS}
+                            rows={data.rows}
+                            count={data.count}
+                            listParams={listParams}
+                            isFetching={query.isFetching}
+                            emptyMessage={
+                                debouncedSearch
+                                    ? `No fighter's name contains "${debouncedSearch}".`
+                                    : "No fighters recorded yet."
+                            }
+                        />
+                    )}
+                </QueryState>
+            </Card>
         </Page>
     );
 }

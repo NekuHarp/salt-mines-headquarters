@@ -1,5 +1,11 @@
-import { Alert, Grid, Stack } from "@mui/material";
+import { Alert, Box, Grid, Stack } from "@mui/material";
 import { DEFAULT_FILTERS, toQueryParams } from "./filterParams";
+import {
+    EMPTY,
+    formatCompact,
+    formatRatio,
+    formatSignedCompact,
+} from "../../utils/format";
 import {
     balanceSeries,
     bettingSummary,
@@ -9,11 +15,6 @@ import {
     scorePredictions,
     summaryByMode,
 } from "./statistics";
-import {
-    formatCompact,
-    formatRatio,
-    formatSignedCompact,
-} from "../../utils/format";
 import { useMemo, useState } from "react";
 
 import { BalanceChart } from "./charts/BalanceChart";
@@ -35,28 +36,32 @@ const COIN_FLIP_BRIER = 0.25;
 
 function Kpis({ score, betting }) {
     return (
-        <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        // A wrapping flex row rather than a Grid: five tiles don't divide into
+        // twelve columns evenly, and `flex` lets them share the row equally at
+        // any width instead of leaving a third of the last row empty.
+        // `useFlexGap` is required for spacing to survive the wrap.
+        <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap">
+            <Box sx={{ flex: "1 1 200px" }}>
                 <StatCard
                     label="Matches"
                     value={formatCompact(score.count)}
                     caption="Recorded predictions in this range."
                 />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            </Box>
+            <Box sx={{ flex: "1 1 200px" }}>
                 <StatCard
                     label="Accuracy"
                     value={formatRatio(score.accuracy)}
                     caption="How often the favoured fighter won."
                     hint="Ignores how confident the call was — a 51% call and a 99% call count the same."
                 />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            </Box>
+            <Box sx={{ flex: "1 1 200px" }}>
                 <StatCard
                     label="Brier score"
                     value={
                         score.brierScore === null
-                            ? "—"
+                            ? EMPTY
                             : score.brierScore.toFixed(3)
                     }
                     caption={
@@ -68,8 +73,22 @@ function Kpis({ score, betting }) {
                     }
                     hint="Mean squared error of the predicted probability. Lower is better; 0.250 is what always guessing 50% scores."
                 />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            </Box>
+            <Box sx={{ flex: "1 1 200px" }}>
+                <StatCard
+                    label="Bets won"
+                    value={formatRatio(betting.winRate)}
+                    caption={
+                        betting.betCount === 0
+                            ? "No bets placed in this range."
+                            : `${betting.betCount} ${
+                                  betting.betCount === 1 ? "bet" : "bets"
+                              } placed.`
+                    }
+                    hint="Share of placed bets that came in. Counted over every bet, not just the settled ones — a loss costs the wager whatever the pots did, so only a win can go unsettled, and settled-only would understate this."
+                />
+            </Box>
+            <Box sx={{ flex: "1 1 200px" }}>
                 <StatCard
                     label="Betting ROI"
                     value={formatRatio(betting.roi)}
@@ -80,10 +99,10 @@ function Kpis({ score, betting }) {
                             ? "No bets placed in this range."
                             : `${betting.settledCount} of ${betting.betCount} bets settled.`
                     }
-                    hint="Profit divided by total staked, over bets whose parimutuel pots were captured."
+                    hint="Profit divided by total staked. Unlike the win rate, this covers only bets whose parimutuel pots were captured, since the pots are what size a payout."
                 />
-            </Grid>
-        </Grid>
+            </Box>
+        </Stack>
     );
 }
 

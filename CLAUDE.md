@@ -62,8 +62,9 @@ Things that are easy to get wrong and are not obvious from the endpoint list:
   the fighter stats frozen at prediction time. There is no POST — rows are
   written by the backend's listener. Pass `fightersInfo=true` for nested
   `P1`/`P2` objects.
-- `GET /fighters` matches `name` **exactly** — its validator declares a plain
-  string, so the `contains` operator other resources accept is rejected here.
+- `GET /fighters` takes `name` as an operator array, so `["contains", text]`
+  searches by substring; a bare string is an exact match. Text filters are
+  debounced (`SEARCH_DEBOUNCE_MS`) so typing doesn't fire a request per keystroke.
 - `GET /state` answers **422** for exhibition matches and 502 when Salty Bet is
   unreachable. Neither is a fault; the UI renders them as states.
 - Matchups are sortable only by `P1_name`, `P2_name`, `createdAt`, `updatedAt` —
