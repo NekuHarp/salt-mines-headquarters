@@ -48,10 +48,15 @@ React Router 7, react-hook-form
 
 Things that are easy to get wrong and are not obvious from the endpoint list:
 
-- **CORS is required.** `CORS_ALLOWED_ORIGINS` in the salt-mines `.env` defaults
-  to `http://localhost:5173`; `none` disables CORS. Browsers hide CORS
-  rejections from JavaScript, so a misconfiguration looks like a generic network
-  error.
+- **CORS is required in development**, where the app calls the backend directly.
+  `CORS_ALLOWED_ORIGINS` in the salt-mines `.env` defaults to
+  `http://localhost:5173`; `none` disables CORS. Browsers hide CORS rejections
+  from JavaScript, so a misconfiguration looks like a generic network error. The
+  deployed build goes through Netlify's `/api/*` proxy instead, which is
+  same-origin, so CORS does not apply there — see `netlify.toml` and the
+  Deployment section of `README.md`. `VITE_SALT_MINES_BACKEND_URL` is therefore
+  an absolute origin locally and the relative path `/api` in production;
+  `client.js` branches its unreachable-API message on which it is.
 - **Basic Auth on everything** except `GET /health_check` and `GET /state`.
   Credentials never live in `.env` — a `VITE_`-prefixed variable is inlined into
   the bundle and publicly readable.

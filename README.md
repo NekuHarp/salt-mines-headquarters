@@ -38,11 +38,45 @@ who loads the page. They are entered through the app's login screen and held in
 
 ## Backend requirements
 
-The API must allow this app's origin. `CORS_ALLOWED_ORIGINS` in the salt-mines
-`.env` defaults to `http://localhost:5173`; set it to the deployed origin in
-production. Without it the browser blocks every request, including the login
-probe, and the failure surfaces as a generic network error because browsers do
-not expose CORS rejections to JavaScript.
+In development the app talks to the API directly, so the API must allow this
+app's origin. `CORS_ALLOWED_ORIGINS` in the salt-mines `.env` defaults to
+`http://localhost:5173`. Without it the browser blocks every request, including
+the login probe, and the failure surfaces as a generic network error because
+browsers do not expose CORS rejections to JavaScript.
+
+## Deployment
+
+Deployed on Netlify at <https://salt-mines-hq.netlify.app/>. `netlify.toml`
+carries two rewrites that the app does not work without:
+
+- **`/api/*` → the backend**, proxied server-side. The backend serves plain HTTP,
+  and a page loaded over HTTPS is not allowed to request an `http://` URL — the
+  browser blocks it before the request is sent, and nothing in the frontend can
+  opt out. Proxying means the browser only ever talks HTTPS to Netlify. It also
+  makes the API same-origin, so CORS does not apply to the deployed app at all.
+  `VITE_SALT_MINES_BACKEND_URL` is set to `/api` for the production build via
+  `[build.environment]`.
+- **`/*` → `/index.html`**, the SPA fallback. React Router owns those paths on
+  the client, so without this a reload or a shared link on anything but `/`
+  returns Netlify's 404.
+
+The proxy target is a literal IP because Netlify cannot interpolate an
+environment variable into a redirect target. That IP is provisioned as
+**ephemeral** on the Oracle VM, so a reboot can change it and `netlify.toml`
+must be updated in step.
+
+### Transport security
+
+The proxy fixes the browser's mixed-content block. It does **not** encrypt the
+traffic. The Netlify-edge-to-backend hop is plaintext HTTP across the public
+internet, so the API's Basic Auth credentials and every response are exposed on
+that leg to anyone positioned along it.
+
+Closing this properly means giving the backend real TLS — a domain pointed at the
+VM with Caddy or nginx plus Let's Encrypt in front of the API, or a Cloudflare
+Tunnel — and then pointing `/api/*` at the `https://` origin. That also requires
+promoting the VM's ephemeral public IP to a reserved one. Until then, treat the
+API credentials as interceptable and do not reuse them anywhere else.
 
 ## Pages
 

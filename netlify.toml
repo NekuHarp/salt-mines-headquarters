@@ -1,0 +1,39 @@
+[build]
+    command = "npm run build"
+    publish = "dist"
+
+[build.environment]
+    # Production reaches the API through the proxy below, so the base URL is a
+    # relative path rather than the backend's own origin. Local development
+    # keeps whatever `.env` says and talks to the backend directly.
+    VITE_SALT_MINES_BACKEND_URL = "/api"
+
+# The API is proxied server-side, which is the whole point: the browser only
+# ever makes an HTTPS request to Netlify, so the backend having no TLS no longer
+# trips the browser's mixed-content block. It also makes the API same-origin, so
+# CORS stops applying to the deployed app entirely.
+#
+# SECURITY: this hop — Netlify's edge to the Oracle VM — is still plaintext HTTP
+# across the public internet. The API's Basic Auth credentials and every response
+# travel unencrypted on it. This unblocks the deployment; it does not secure it.
+# See "Transport security" in README.md.
+#
+# The target is a literal because Netlify cannot interpolate an environment
+# variable into a redirect target. The VM's public IP is provisioned as
+# *ephemeral* (see the backend's DEPLOY.md), so a reboot can change it and this
+# line has to be updated in step.
+#
+# Must precede the SPA fallback below, or the catch-all would swallow it.
+[[redirects]]
+    from = "/api/*"
+    to = "http://130.110.246.254:3000/:splat"
+    status = 200
+    force = true
+
+# SPA fallback. React Router owns these paths on the client, so an unknown path
+# has to serve the app shell rather than Netlify's own 404 — without this, a
+# reload or a shared link on anything but "/" fails.
+[[redirects]]
+    from = "/*"
+    to = "/index.html"
+    status = 200

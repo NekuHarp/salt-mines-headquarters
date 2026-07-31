@@ -2,10 +2,32 @@ import { clearCredentials, getAuthHeader } from "../auth/credentialStore";
 
 import { stringify } from "qs";
 
+/**
+ * Where the API lives. Either the backend's own origin, as in local development,
+ * or a relative path that a proxy in front of this app forwards — which is how
+ * the deployed build reaches an HTTP-only backend from an HTTPS page without
+ * tripping the browser's mixed-content block.
+ */
 const BASE_URL = (import.meta.env.VITE_SALT_MINES_BACKEND_URL ?? "").replace(
     /\/+$/,
     "",
 );
+
+/** True when requests go straight to the backend rather than through a proxy. */
+const IS_CROSS_ORIGIN = /^https?:\/\//i.test(BASE_URL);
+
+/**
+ * Browsers deliberately hide why a request failed at the network level, so the
+ * best this can do is name the likely cause — and that differs by deployment:
+ * direct requests can be refused by CORS, proxied ones cannot.
+ */
+function unreachableMessage() {
+    if (IS_CROSS_ORIGIN) {
+        return `Could not reach the API at ${BASE_URL}. Check that it is running and that this origin is in its CORS_ALLOWED_ORIGINS.`;
+    }
+
+    return `Could not reach the API through ${BASE_URL}. Check that the proxy in front of this app is configured and that the backend behind it is running.`;
+}
 
 /**
  * An API failure with the status and, when the backend supplied one, its
@@ -91,9 +113,7 @@ export async function request(
         // the cause of a CORS rejection behind the same generic error.
         if (error?.name === "AbortError") throw error;
 
-        throw new ApiError(
-            `Could not reach the API at ${BASE_URL}. Check that it is running and that this origin is in its CORS_ALLOWED_ORIGINS.`,
-        );
+        throw new ApiError(unreachableMessage());
     }
 
     const payload = await parseBody(response);
