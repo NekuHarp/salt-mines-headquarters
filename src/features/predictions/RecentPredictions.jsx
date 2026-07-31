@@ -18,6 +18,7 @@ import {
     formatCompact,
     formatDateTime,
     formatOdds,
+    formatOddsSide,
     formatPercent,
     formatSignedCompact,
 } from "../../utils/format";
@@ -41,14 +42,59 @@ const NAME_CELL = {
 };
 
 /**
+ * How a match slot is written and coloured.
+ *
  * The two sides are labelled by slot rather than by name everywhere except the
- * fighter columns. Repeating a name in Favourite, Winner and Wager made every
+ * fighter columns — repeating a name in Favourite, Winner and Wager made every
  * row read as a wall of the same two strings.
+ *
+ * A branch on the enum rather than a lookup table: `winner` and the derived
+ * favourite are both strictly one of two values, so this is exhaustive, and it
+ * keeps each side's label and colour defined together.
  */
-const PLAYER_LABELS = Object.freeze({
-    [MATCH_WINNERS.P1]: "P1",
-    [MATCH_WINNERS.P2]: "P2",
-});
+function playerStyle(player) {
+    return player === MATCH_WINNERS.P1
+        ? { label: "P1", color: "viz.players.p1" }
+        : { label: "P2", color: "viz.players.p2" };
+}
+
+/**
+ * A slot label in its own colour.
+ *
+ * Colour here reinforces identity rather than carrying it: which fighter is
+ * which is already fixed by the column, and this cell still spells out "P1" or
+ * "P2", so nothing is lost if the hue cannot be seen.
+ */
+function PlayerLabel({ player }) {
+    const { label, color } = playerStyle(player);
+
+    return (
+        <Box component="span" sx={{ color, fontWeight: 600 }}>
+            {label}
+        </Box>
+    );
+}
+
+/** The ratio with each side in its own slot colour, the separator recessive. */
+function OddsCell({ odds }) {
+    if (!odds) return EMPTY;
+
+    return (
+        // The joined ratio goes on the label so assistive tech reads "1:4.85"
+        // rather than three disconnected fragments.
+        <Box component="span" aria-label={formatOdds(odds)}>
+            <Box component="span" sx={{ color: "viz.players.p1" }}>
+                {formatOddsSide(odds.p1)}
+            </Box>
+            <Box component="span" sx={{ color: "text.disabled", mx: 0.25 }}>
+                :
+            </Box>
+            <Box component="span" sx={{ color: "viz.players.p2" }}>
+                {formatOddsSide(odds.p2)}
+            </Box>
+        </Box>
+    );
+}
 
 /**
  * A correct or incorrect call, as an icon plus a word.
@@ -85,8 +131,6 @@ function toRow(prediction) {
         p1Name: prediction.P1?.name ?? prediction.p1Uuid,
         p2Name: prediction.P2?.name ?? prediction.p2Uuid,
         odds: potOdds(prediction),
-        p1Total: prediction.p1Total,
-        p2Total: prediction.p2Total,
         favouredPlayer: player,
         confidence,
         winner: prediction.winner,
@@ -112,7 +156,7 @@ function wagerCell(row) {
     // favourite.
     return row.betPlayer === row.favouredPlayer
         ? amount
-        : `${amount} on ${PLAYER_LABELS[row.betPlayer]}`;
+        : `${amount} on ${playerStyle(row.betPlayer).label}`;
 }
 
 const COLUMNS = [
@@ -133,7 +177,11 @@ const COLUMNS = [
         id: "p1Name",
         label: "Fighter 1",
         render: (row) => (
-            <Box component="span" title={row.p1Name} sx={NAME_CELL}>
+            <Box
+                component="span"
+                title={row.p1Name}
+                sx={{ ...NAME_CELL, color: "viz.players.p1" }}
+            >
                 {row.p1Name}
             </Box>
         ),
@@ -142,7 +190,11 @@ const COLUMNS = [
         id: "p2Name",
         label: "Fighter 2",
         render: (row) => (
-            <Box component="span" title={row.p2Name} sx={NAME_CELL}>
+            <Box
+                component="span"
+                title={row.p2Name}
+                sx={{ ...NAME_CELL, color: "viz.players.p2" }}
+            >
                 {row.p2Name}
             </Box>
         ),
@@ -151,24 +203,12 @@ const COLUMNS = [
         id: "odds",
         label: "Odds",
         numeric: true,
-        render: (row) => formatOdds(row.odds),
-    },
-    {
-        id: "p1Total",
-        label: "P1 pot",
-        numeric: true,
-        render: (row) => formatCompact(row.p1Total),
-    },
-    {
-        id: "p2Total",
-        label: "P2 pot",
-        numeric: true,
-        render: (row) => formatCompact(row.p2Total),
+        render: (row) => <OddsCell odds={row.odds} />,
     },
     {
         id: "favourite",
         label: "Favourite",
-        render: (row) => PLAYER_LABELS[row.favouredPlayer],
+        render: (row) => <PlayerLabel player={row.favouredPlayer} />,
     },
     {
         id: "confidence",
@@ -179,7 +219,7 @@ const COLUMNS = [
     {
         id: "winner",
         label: "Winner",
-        render: (row) => PLAYER_LABELS[row.winner],
+        render: (row) => <PlayerLabel player={row.winner} />,
     },
     {
         id: "call",

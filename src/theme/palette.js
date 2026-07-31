@@ -99,6 +99,21 @@ const ERROR = {
  */
 const VIZ = {
     categorical: ["#3987E5", "#D95926", "#199E70"],
+    /**
+     * Fixed identity colours for the two match slots, so p1 and p2 read the same
+     * way everywhere they appear together.
+     *
+     * Validated as a pair against `paper` (dark, all pairs): CVD ΔE 19.2, normal
+     * vision ΔE 29.0, both at or above 3:1 contrast — a wider margin than the
+     * categorical trio manages, because the common colour deficiencies are
+     * red-green, leaving red against blue easy to separate.
+     *
+     * `p1` sits close to `status.critical` (normal-vision ΔE 9.9), so a red "P1"
+     * and a red loss can look alike. That is tolerable only because nothing
+     * status-coloured relies on hue: a loss carries a minus sign and a missed
+     * call carries an icon and the word "Miss". Keep it that way.
+     */
+    players: { p1: "#E66767", p2: "#3987E5" },
     sequential: [
         "#CDE2FB",
         "#9EC5F4",

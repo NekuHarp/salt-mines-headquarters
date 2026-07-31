@@ -112,9 +112,13 @@ export function formatSignedCompact(value) {
  *
  * `String` rather than `toFixed` so trailing zeros are dropped: an even split
  * reads `1:1` instead of `1.00:1.00`, and a whole multiple reads `1:2`.
+ *
+ * Exported because the two sides are coloured separately where they are
+ * displayed, so the caller needs them as individual strings rather than as one
+ * pre-joined ratio.
  */
-function oddsSide(value) {
-    return String(Math.round(value * 100) / 100);
+export function formatOddsSide(value) {
+    return isMissing(value) ? EMPTY : String(Math.round(value * 100) / 100);
 }
 
 /**
@@ -126,7 +130,7 @@ function oddsSide(value) {
 export function formatOdds(odds) {
     if (!odds) return EMPTY;
 
-    return `${oddsSide(odds.p1)}:${oddsSide(odds.p2)}`;
+    return `${formatOddsSide(odds.p1)}:${formatOddsSide(odds.p2)}`;
 }
 
 /** Win rate as a 0–1 ratio, or null when the fighter has no recorded matches. */

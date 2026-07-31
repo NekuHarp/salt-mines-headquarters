@@ -13,6 +13,11 @@ const SURFACE_GAP = 2;
  * Both sides are direct-labeled with their name and percentage, so identity
  * never rests on the colour alone — which also means no legend box is needed
  * for what is only ever two series.
+ *
+ * Coloured from `palette.viz.players` rather than the chart categorical hues, so
+ * p1 and p2 mean the same colour here as in the statistics match log. It also
+ * separates better: the red/blue pair measures CVD ΔE 19.2 against the
+ * blue/orange pair's 9.4.
  */
 export function WinChanceBar({ p1Name, p2Name, p1Chance, p2Chance }) {
     const total = p1Chance + p2Chance;
@@ -29,7 +34,7 @@ export function WinChanceBar({ p1Name, p2Name, p1Chance, p2Chance }) {
                             width: 10,
                             height: 10,
                             borderRadius: "50%",
-                            bgcolor: "viz.categorical.0",
+                            bgcolor: "viz.players.p1",
                             flexShrink: 0,
                         }}
                     />
@@ -46,7 +51,7 @@ export function WinChanceBar({ p1Name, p2Name, p1Chance, p2Chance }) {
                             width: 10,
                             height: 10,
                             borderRadius: "50%",
-                            bgcolor: "viz.categorical.1",
+                            bgcolor: "viz.players.p2",
                             flexShrink: 0,
                         }}
                     />
@@ -66,7 +71,7 @@ export function WinChanceBar({ p1Name, p2Name, p1Chance, p2Chance }) {
                 <Box
                     sx={{
                         width: `${p1Width}%`,
-                        bgcolor: "viz.categorical.0",
+                        bgcolor: "viz.players.p1",
                         // Square where the two meet, rounded at the data end.
                         borderRadius: "4px 0 0 4px",
                         minWidth: 4,
@@ -75,7 +80,7 @@ export function WinChanceBar({ p1Name, p2Name, p1Chance, p2Chance }) {
                 <Box
                     sx={{
                         flex: 1,
-                        bgcolor: "viz.categorical.1",
+                        bgcolor: "viz.players.p2",
                         borderRadius: "0 4px 4px 0",
                         minWidth: 4,
                     }}
