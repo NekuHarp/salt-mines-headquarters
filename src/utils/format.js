@@ -107,6 +107,28 @@ export function formatSignedCompact(value) {
     return formatted;
 }
 
+/**
+ * Rounds one side of an odds ratio to at most two decimals.
+ *
+ * `String` rather than `toFixed` so trailing zeros are dropped: an even split
+ * reads `1:1` instead of `1.00:1.00`, and a whole multiple reads `1:2`.
+ */
+function oddsSide(value) {
+    return String(Math.round(value * 100) / 100);
+}
+
+/**
+ * A `{ p1, p2 }` odds ratio, as produced by `potOdds`, rendered `P1:P2`.
+ *
+ * The order matches the fighter columns beside it, so the ratio lines up with
+ * which fighter is which rather than needing to be re-read against a legend.
+ */
+export function formatOdds(odds) {
+    if (!odds) return EMPTY;
+
+    return `${oddsSide(odds.p1)}:${oddsSide(odds.p2)}`;
+}
+
 /** Win rate as a 0–1 ratio, or null when the fighter has no recorded matches. */
 export function winRate({ wins, matches }) {
     if (!matches) return null;

@@ -7,6 +7,7 @@ import {
     confidenceDistribution,
     favourite,
     favouriteWon,
+    potOdds,
     profitSeries,
     realisedProfit,
     scorePredictions,
@@ -159,6 +160,48 @@ describe("betWon", () => {
 
         expect(realisedProfit(prediction)).toBeNull();
         expect(betWon(prediction)).toBe(true);
+    });
+});
+
+describe("potOdds", () => {
+    it("normalises the smaller pot to exactly one", () => {
+        expect(potOdds(row({ p1Total: 1_000_000, p2Total: 2_000_000 }))).toEqual(
+            { p1: 1, p2: 2 },
+        );
+    });
+
+    it("normalises whichever side is smaller, not always p1", () => {
+        expect(potOdds(row({ p1Total: 2_000_000, p2Total: 1_000_000 }))).toEqual(
+            { p1: 2, p2: 1 },
+        );
+    });
+
+    it("reduces rather than reporting the raw totals", () => {
+        const odds = potOdds(row({ p1Total: 1_300_000, p2Total: 2_100_000 }));
+
+        expect(odds.p1).toBe(1);
+        expect(odds.p2).toBeCloseTo(1.615, 3);
+    });
+
+    it("reads an even split as one to one", () => {
+        expect(potOdds(row({ p1Total: 500, p2Total: 500 }))).toEqual({
+            p1: 1,
+            p2: 1,
+        });
+    });
+
+    it("has no ratio before betting locks, when both pots read zero", () => {
+        expect(potOdds(row({ p1Total: 0, p2Total: 0 }))).toBeNull();
+    });
+
+    it("has no ratio when a pot was never captured", () => {
+        expect(potOdds(row({ p1Total: null, p2Total: 2_000_000 }))).toBeNull();
+        expect(potOdds(row())).toBeNull();
+    });
+
+    it("has no ratio when one side drew no money, rather than dividing by zero", () => {
+        expect(potOdds(row({ p1Total: 0, p2Total: 2_000_000 }))).toBeNull();
+        expect(potOdds(row({ p1Total: 2_000_000, p2Total: 0 }))).toBeNull();
     });
 });
 

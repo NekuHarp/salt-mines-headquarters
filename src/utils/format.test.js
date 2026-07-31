@@ -4,6 +4,7 @@ import {
     formatDate,
     formatDateTime,
     formatInteger,
+    formatOdds,
     formatPercent,
     formatRatio,
     formatSignedCompact,
@@ -187,6 +188,35 @@ describe("formatSignedCompact", () => {
 
     it.each(missing)("renders %s as the empty dash", (value) => {
         expect(formatSignedCompact(value)).toBe(EMPTY);
+    });
+});
+
+describe("formatOdds", () => {
+    it("renders a whole multiple without decimals", () => {
+        expect(formatOdds({ p1: 1, p2: 2 })).toBe("1:2");
+        expect(formatOdds({ p1: 2, p2: 1 })).toBe("2:1");
+    });
+
+    it("renders an even split as one to one", () => {
+        expect(formatOdds({ p1: 1, p2: 1 })).toBe("1:1");
+    });
+
+    it("rounds a fractional side to two decimals", () => {
+        expect(formatOdds({ p1: 1, p2: 1.6153846 })).toBe("1:1.62");
+    });
+
+    it("drops trailing zeros rather than padding to two decimals", () => {
+        expect(formatOdds({ p1: 1, p2: 1.6 })).toBe("1:1.6");
+        expect(formatOdds({ p1: 1, p2: 1.001 })).toBe("1:1");
+    });
+
+    it("keeps p1 on the left, matching the fighter columns", () => {
+        expect(formatOdds({ p1: 3, p2: 1 })).toBe("3:1");
+    });
+
+    it("renders an absent ratio as the empty dash", () => {
+        expect(formatOdds(null)).toBe(EMPTY);
+        expect(formatOdds(undefined)).toBe(EMPTY);
     });
 });
 

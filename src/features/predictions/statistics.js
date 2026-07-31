@@ -84,6 +84,28 @@ export function realisedProfit(prediction) {
 }
 
 /**
+ * Pot odds as a P1:P2 ratio, normalised so the smaller side is exactly 1.
+ *
+ * Dividing through by the smaller pot is how Salty Bet itself presents odds, and
+ * it reads better than the unreduced totals: 1.3M against 2.1M becomes `1:1.62`
+ * rather than `13:21`.
+ *
+ * Null when no ratio exists. Salty Bet reports both pots as 0 until betting
+ * locks, and the columns are nullable because that read can be missed; a single
+ * empty side has no ratio either, since it would divide by zero.
+ */
+export function potOdds(prediction) {
+    const { p1Total, p2Total } = prediction;
+
+    // Catches null, undefined and 0 in one go — none of them yield a ratio.
+    if (!p1Total || !p2Total) return null;
+
+    const smaller = Math.min(p1Total, p2Total);
+
+    return { p1: p1Total / smaller, p2: p2Total / smaller };
+}
+
+/**
  * Accuracy and Brier score over a set of predictions.
  *
  * Accuracy answers "how often was the favourite right", which is the intuitive
