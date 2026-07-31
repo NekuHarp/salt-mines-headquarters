@@ -87,6 +87,16 @@ export const POLL_INTERVALS = Object.freeze({
  */
 export const SEARCH_DEBOUNCE_MS = 300;
 
+/**
+ * Decimal places to show a win chance to, wherever one appears.
+ *
+ * Two, because that is the precision the backend actually works in: the
+ * prediction column is `DECIMAL(5,2)` and `GET /state` rounds both live chances
+ * to two places before returning them. Showing fewer would throw away a digit
+ * the API deliberately kept; showing more would invent one.
+ */
+export const WIN_CHANCE_DECIMALS = 2;
+
 export const INPUT_VALIDATION = Object.freeze({
     REQUIRED: "This field is required.",
     REQUIRED_SHORT: "Required.",

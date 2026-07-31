@@ -22,7 +22,12 @@ import {
     formatPercent,
     formatSignedCompact,
 } from "../../utils/format";
-import { MATCH_WINNERS, PAGINATION, SELECTED_PLAYERS } from "../../constants";
+import {
+    MATCH_WINNERS,
+    PAGINATION,
+    SELECTED_PLAYERS,
+    WIN_CHANCE_DECIMALS,
+} from "../../constants";
 import { favourite, favouriteWon, potOdds, realisedProfit } from "./statistics";
 
 import CheckIcon from "@mui/icons-material/Check";
@@ -79,9 +84,8 @@ function PlayerLabel({ player }) {
  * Which side was favoured and by how much, as one cell.
  *
  * Only the slot label is coloured; the percentage stays in body text, since it
- * is a magnitude rather than an identity. Two decimals because that is the
- * precision the API actually stores (`DECIMAL(5,2)`) — rounding to one would
- * discard a digit the backend went to the trouble of keeping.
+ * is a magnitude rather than an identity. Precision comes from the shared
+ * `WIN_CHANCE_DECIMALS`, so this reads the same as the live match bar.
  */
 function FavouriteCell({ player, confidence }) {
     return (
@@ -90,7 +94,7 @@ function FavouriteCell({ player, confidence }) {
             <Box component="span" sx={{ color: "text.disabled" }}>
                 {" - "}
             </Box>
-            {formatPercent(confidence, 2)}
+            {formatPercent(confidence, WIN_CHANCE_DECIMALS)}
         </Box>
     );
 }

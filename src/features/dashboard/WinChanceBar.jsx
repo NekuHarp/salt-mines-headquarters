@@ -1,5 +1,6 @@
 import { Box, Stack, Typography } from "@mui/material";
 
+import { WIN_CHANCE_DECIMALS } from "../../constants";
 import { formatPercent } from "../../utils/format";
 
 const BAR_HEIGHT = 24;
@@ -60,7 +61,7 @@ export function WinChanceBar({ p1Name, p2Name, p1Chance, p2Chance }) {
 
             <Box
                 role="img"
-                aria-label={`${p1Name} ${formatPercent(p1Chance)}, ${p2Name} ${formatPercent(p2Chance)}`}
+                aria-label={`${p1Name} ${formatPercent(p1Chance, WIN_CHANCE_DECIMALS)}, ${p2Name} ${formatPercent(p2Chance, WIN_CHANCE_DECIMALS)}`}
                 sx={{
                     display: "flex",
                     height: BAR_HEIGHT,
@@ -93,14 +94,14 @@ export function WinChanceBar({ p1Name, p2Name, p1Chance, p2Chance }) {
                     component="p"
                     sx={{ color: "text.primary" }}
                 >
-                    {formatPercent(p1Chance)}
+                    {formatPercent(p1Chance, WIN_CHANCE_DECIMALS)}
                 </Typography>
                 <Typography
                     variant="h6"
                     component="p"
                     sx={{ color: "text.primary" }}
                 >
-                    {formatPercent(p2Chance)}
+                    {formatPercent(p2Chance, WIN_CHANCE_DECIMALS)}
                 </Typography>
             </Stack>
         </Stack>
