@@ -8,6 +8,23 @@
     # keeps whatever `.env` says and talks to the backend directly.
     VITE_SALT_MINES_BACKEND_URL = "/api"
 
+    # Netlify's secrets scanner treats every build environment variable as a
+    # secret and fails the build if it finds the *value* in the repo or output.
+    # Two reasons that is wrong here, and neither is a reason to weaken the scan
+    # in general:
+    #
+    #   1. The value is "/api" — a relative path holding nothing sensitive, and a
+    #      substring of every import in `src/api/` ("./api/client" and friends),
+    #      so it matches dozens of lines that have nothing to do with it.
+    #   2. A VITE_-prefixed variable is public by construction: Vite inlines it
+    #      into the client bundle, so it is *meant* to appear in the output. That
+    #      is exactly why the API's Basic Auth credentials are entered at the
+    #      login screen instead of being configured here.
+    #
+    # Scoped to this one key on purpose. SECRETS_SCAN_ENABLED = false would also
+    # silence the scanner for a genuinely secret variable added later.
+    SECRETS_SCAN_OMIT_KEYS = "VITE_SALT_MINES_BACKEND_URL"
+
 # The API is proxied server-side, which is the whole point: the browser only
 # ever makes an HTTPS request to Netlify, so the backend having no TLS no longer
 # trips the browser's mixed-content block. It also makes the API same-origin, so
