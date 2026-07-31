@@ -75,6 +75,26 @@ function PlayerLabel({ player }) {
     );
 }
 
+/**
+ * Which side was favoured and by how much, as one cell.
+ *
+ * Only the slot label is coloured; the percentage stays in body text, since it
+ * is a magnitude rather than an identity. Two decimals because that is the
+ * precision the API actually stores (`DECIMAL(5,2)`) — rounding to one would
+ * discard a digit the backend went to the trouble of keeping.
+ */
+function FavouriteCell({ player, confidence }) {
+    return (
+        <Box component="span">
+            <PlayerLabel player={player} />
+            <Box component="span" sx={{ color: "text.disabled" }}>
+                {" - "}
+            </Box>
+            {formatPercent(confidence, 2)}
+        </Box>
+    );
+}
+
 /** The ratio with each side in its own slot colour, the separator recessive. */
 function OddsCell({ odds }) {
     if (!odds) return EMPTY;
@@ -208,13 +228,16 @@ const COLUMNS = [
     {
         id: "favourite",
         label: "Favourite",
-        render: (row) => <PlayerLabel player={row.favouredPlayer} />,
-    },
-    {
-        id: "confidence",
-        label: "Confidence",
-        numeric: true,
-        render: (row) => formatPercent(row.confidence),
+        render: (row) => (
+            <FavouriteCell
+                player={row.favouredPlayer}
+                confidence={row.confidence}
+            />
+        ),
+        // Left-aligned as a compound label, but tabular figures still line the
+        // percentages up: "P1" and "P2" are the same width once digits are, so
+        // the numbers land in the same column down the page.
+        sx: { ...NUMERIC, whiteSpace: "nowrap" },
     },
     {
         id: "winner",
