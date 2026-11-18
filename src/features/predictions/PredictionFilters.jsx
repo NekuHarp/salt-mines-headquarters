@@ -79,20 +79,21 @@ export function PredictionFilters({ value, onChange }) {
                     ))}
                 </ToggleButtonGroup>
 
-                <ToggleButtonGroup
-                    exclusive
-                    size="small"
-                    value={value.sampleSize}
-                    onChange={(event, next) => {
-                        if (next !== null) update({ sampleSize: next });
-                    }}
+                <TextField
+                    select
+                    label="Sample"
+                    value={value.limit}
+                    onChange={(event) =>
+                        update({ limit: Number(event.target.value) })
+                    }
+                    sx={{ minWidth: 200 }}
                 >
                     {SAMPLE_SIZES.map((size) => (
-                        <ToggleButton key={size.value} value={size.value}>
-                            {size.label}
-                        </ToggleButton>
+                        <MenuItem key={size} value={size}>
+                            Last {size.toLocaleString("en")} fights
+                        </MenuItem>
                     ))}
-                </ToggleButtonGroup>
+                </TextField>
             </Stack>
         </Card>
     );

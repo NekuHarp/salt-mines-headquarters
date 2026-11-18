@@ -1,24 +1,20 @@
 import { API_MAX_LIMIT, STATISTICS_SAMPLE_LIMIT } from "../../constants";
 
 export const SAMPLE_SIZES = [
-    {
-        value: "recent",
-        label: `Last ${STATISTICS_SAMPLE_LIMIT.toLocaleString("en")} fights`,
-        limit: STATISTICS_SAMPLE_LIMIT,
-    },
-    { value: "all", label: "All fights", limit: API_MAX_LIMIT },
+    STATISTICS_SAMPLE_LIMIT,
+    10000,
+    20000,
+    50000,
+    100000,
+    API_MAX_LIMIT,
 ];
-
-export function sampleLimit(sampleSize) {
-    return SAMPLE_SIZES.find((size) => size.value === sampleSize).limit;
-}
 
 export const DEFAULT_FILTERS = {
     mode: "",
     createdAfter: "",
     createdBefore: "",
     betFilter: "all",
-    sampleSize: "recent",
+    limit: STATISTICS_SAMPLE_LIMIT,
 };
 
 export const BET_FILTERS = [
@@ -39,10 +35,10 @@ export function toQueryParams({
     createdAfter,
     createdBefore,
     betFilter,
-    sampleSize,
+    limit,
 }) {
     return {
-        limit: sampleLimit(sampleSize),
+        limit,
         ...(mode ? { mode } : {}),
         ...(createdAfter
             ? { createdAfter: new Date(createdAfter).toISOString() }

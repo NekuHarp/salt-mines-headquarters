@@ -1,5 +1,5 @@
 import { Alert, Box, Grid, Stack } from "@mui/material";
-import { DEFAULT_FILTERS, sampleLimit, toQueryParams } from "./filterParams";
+import { DEFAULT_FILTERS, toQueryParams } from "./filterParams";
 import {
     EMPTY,
     formatCompact,
@@ -114,7 +114,6 @@ function Kpis({ score, betting }) {
  */
 export function PredictionsPage() {
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
-    const limit = sampleLimit(filters.sampleSize);
 
     const params = useMemo(
         () => ({
@@ -155,10 +154,10 @@ export function PredictionsPage() {
                 <QueryState query={query} minHeight={320}>
                     {(data) => (
                         <Stack spacing={2}>
-                            {data.count > limit ? (
+                            {data.count > filters.limit ? (
                                 <Alert severity="info" variant="outlined">
                                     Showing the most recent{" "}
-                                    {formatCompact(limit)} of{" "}
+                                    {formatCompact(filters.limit)} of{" "}
                                     {formatCompact(data.count)} matches. Narrow
                                     the date range to analyse an earlier period.
                                 </Alert>
