@@ -1,3 +1,4 @@
+import { BET_FILTERS, SAMPLE_SIZES } from "./filterParams";
 import {
     Card,
     MenuItem,
@@ -7,14 +8,13 @@ import {
     ToggleButtonGroup,
 } from "@mui/material";
 
-import { BET_FILTERS } from "./filterParams";
 import { MATCH_MODES } from "../../constants";
 
 /**
  * Filters for the statistics view.
  *
  * These are pushed to the API rather than applied to the fetched rows: the
- * sample is capped, so filtering server-side means the cap applies to matches
+ * sample can be capped, so filtering server-side means the cap applies to matches
  * that are actually in scope.
  */
 export function PredictionFilters({ value, onChange }) {
@@ -75,6 +75,21 @@ export function PredictionFilters({ value, onChange }) {
                     {BET_FILTERS.map((filter) => (
                         <ToggleButton key={filter.value} value={filter.value}>
                             {filter.label}
+                        </ToggleButton>
+                    ))}
+                </ToggleButtonGroup>
+
+                <ToggleButtonGroup
+                    exclusive
+                    size="small"
+                    value={value.sampleSize}
+                    onChange={(event, next) => {
+                        if (next !== null) update({ sampleSize: next });
+                    }}
+                >
+                    {SAMPLE_SIZES.map((size) => (
+                        <ToggleButton key={size.value} value={size.value}>
+                            {size.label}
                         </ToggleButton>
                     ))}
                 </ToggleButtonGroup>

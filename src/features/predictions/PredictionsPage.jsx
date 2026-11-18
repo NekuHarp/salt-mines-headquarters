@@ -1,5 +1,5 @@
 import { Alert, Box, Grid, Stack } from "@mui/material";
-import { DEFAULT_FILTERS, toQueryParams } from "./filterParams";
+import { DEFAULT_FILTERS, sampleLimit, toQueryParams } from "./filterParams";
 import {
     EMPTY,
     formatCompact,
@@ -26,7 +26,6 @@ import { PredictionFilters } from "./PredictionFilters";
 import { ProfitChart } from "./charts/ProfitChart";
 import { QueryState } from "../../components/QueryState";
 import { RecentPredictions } from "./RecentPredictions";
-import { STATISTICS_SAMPLE_LIMIT } from "../../constants";
 import { StatCard } from "../../components/StatCard";
 import { predictionsQuery } from "../../api/predictions";
 import { useQuery } from "@tanstack/react-query";
@@ -115,12 +114,12 @@ function Kpis({ score, betting }) {
  */
 export function PredictionsPage() {
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const limit = sampleLimit(filters.sampleSize);
 
     const params = useMemo(
         () => ({
             ...toQueryParams(filters),
             fightersInfo: true,
-            limit: STATISTICS_SAMPLE_LIMIT,
             sort: "-createdAt",
         }),
         [filters],
@@ -156,19 +155,16 @@ export function PredictionsPage() {
                 <QueryState query={query} minHeight={320}>
                     {(data) => (
                         <Stack spacing={2}>
-                            {data.count > STATISTICS_SAMPLE_LIMIT ? (
+                            {data.count > limit ? (
                                 <Alert severity="info" variant="outlined">
                                     Showing the most recent{" "}
-                                    {formatCompact(STATISTICS_SAMPLE_LIMIT)} of{" "}
+                                    {formatCompact(limit)} of{" "}
                                     {formatCompact(data.count)} matches. Narrow
                                     the date range to analyse an earlier period.
                                 </Alert>
                             ) : null}
 
-                            <Kpis
-                                score={stats.score}
-                                betting={stats.betting}
-                            />
+                            <Kpis score={stats.score} betting={stats.betting} />
 
                             <Grid container spacing={2}>
                                 <Grid size={{ xs: 12, lg: 6 }}>
@@ -177,9 +173,7 @@ export function PredictionsPage() {
                                     />
                                 </Grid>
                                 <Grid size={{ xs: 12, lg: 6 }}>
-                                    <ConfidenceChart
-                                        bands={stats.confidence}
-                                    />
+                                    <ConfidenceChart bands={stats.confidence} />
                                 </Grid>
                                 <Grid size={{ xs: 12, lg: 6 }}>
                                     <BalanceChart series={stats.balance} />

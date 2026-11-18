@@ -62,10 +62,12 @@ export const PAGINATION = Object.freeze({
 /** Bounds the API enforces on listener/auto-scrape requests. */
 export const MATCHES_TO_RECORD = Object.freeze({ MIN: 1, MAX: 25 });
 
+/** The API's `limit` ceiling (PAGINATION.GENERIC.LIMIT.MAX). */
+export const API_MAX_LIMIT = 1000000;
+
 /**
- * How many predictions the statistics page pulls in one request. The API's
- * ceiling is 50000; this is deliberately lower because every row is also
- * aggregated in the browser.
+ * Default sample size for the statistics page — lower than the API ceiling
+ * because every row is also aggregated in the browser.
  */
 export const STATISTICS_SAMPLE_LIMIT = 5000;
 

@@ -99,7 +99,11 @@ export function ModeSummaryTable({ summaries }) {
                 {summaries.length > 0 && hasUnsettledBets(summaries) ? (
                     <Typography
                         variant="caption"
-                        sx={{ color: "text.secondary", display: "block", mt: 2 }}
+                        sx={{
+                            color: "text.secondary",
+                            display: "block",
+                            mt: 2,
+                        }}
                     >
                         Bets won covers every bet placed. Profit and ROI cover
                         only those whose betting pots were captured, so they

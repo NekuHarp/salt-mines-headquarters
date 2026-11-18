@@ -35,7 +35,9 @@ export function ConfidenceChart({ bands, height = 280 }) {
                             categoryGapRatio: 0.4,
                         },
                     ]}
-                    yAxis={[{ valueFormatter: formatInteger, label: "Matches" }]}
+                    yAxis={[
+                        { valueFormatter: formatInteger, label: "Matches" },
+                    ]}
                     series={[
                         {
                             data: bands.map((band) => band.total),

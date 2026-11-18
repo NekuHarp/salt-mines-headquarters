@@ -55,6 +55,12 @@ const COLUMNS = [
         render: (row) => formatRatio(winRate(row)),
     },
     {
+        id: "createdAt",
+        label: "First seen",
+        sortable: true,
+        render: (row) => formatDateTime(row.createdAt),
+    },
+    {
         id: "updatedAt",
         label: "Last seen",
         sortable: true,
@@ -64,7 +70,10 @@ const COLUMNS = [
 
 export function FightersPage() {
     const [search, setSearch] = useState("");
-    const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
+    const debouncedSearch = useDebouncedValue(
+        search.trim(),
+        SEARCH_DEBOUNCE_MS,
+    );
 
     // `contains` is the API's substring operator, sent in its array filter
     // syntax; the client serialises this to `name[]=contains&name[]=<value>`.

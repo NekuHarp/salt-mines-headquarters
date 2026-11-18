@@ -165,15 +165,15 @@ describe("betWon", () => {
 
 describe("potOdds", () => {
     it("normalises the smaller pot to exactly one", () => {
-        expect(potOdds(row({ p1Total: 1_000_000, p2Total: 2_000_000 }))).toEqual(
-            { p1: 1, p2: 2 },
-        );
+        expect(
+            potOdds(row({ p1Total: 1_000_000, p2Total: 2_000_000 })),
+        ).toEqual({ p1: 1, p2: 2 });
     });
 
     it("normalises whichever side is smaller, not always p1", () => {
-        expect(potOdds(row({ p1Total: 2_000_000, p2Total: 1_000_000 }))).toEqual(
-            { p1: 2, p2: 1 },
-        );
+        expect(
+            potOdds(row({ p1Total: 2_000_000, p2Total: 1_000_000 })),
+        ).toEqual({ p1: 2, p2: 1 });
     });
 
     it("reduces rather than reporting the raw totals", () => {

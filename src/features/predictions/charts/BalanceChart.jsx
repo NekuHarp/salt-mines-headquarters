@@ -1,10 +1,5 @@
 import { CHART_MARGIN, HIDDEN_LEGEND, chartSx } from "./chartStyles";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    Typography,
-} from "@mui/material";
+import { Card, CardContent, CardHeader, Typography } from "@mui/material";
 
 import { LineChart } from "@mui/x-charts/LineChart";
 import { formatCompact } from "../../../utils/format";
