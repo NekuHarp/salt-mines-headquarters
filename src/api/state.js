@@ -12,8 +12,7 @@ import { request } from "./client";
  */
 export const matchStateQuery = () => ({
     queryKey: queryKeys.state.match,
-    queryFn: ({ signal }) =>
-        request(API_ROUTES.State, { signal }),
+    queryFn: ({ signal }) => request(API_ROUTES.State, { signal }),
     refetchInterval: POLL_INTERVALS.MATCH_STATE,
     retry: false,
 });
@@ -27,8 +26,7 @@ export const matchStateQuery = () => ({
  */
 export const balanceQuery = () => ({
     queryKey: queryKeys.state.balance,
-    queryFn: ({ signal }) =>
-        request(`${API_ROUTES.State}/balance`, { signal }),
+    queryFn: ({ signal }) => request(`${API_ROUTES.State}/balance`, { signal }),
     refetchInterval: POLL_INTERVALS.BALANCE,
     retry: false,
 });

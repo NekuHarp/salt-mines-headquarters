@@ -1,6 +1,6 @@
+import { request, requestList } from "./client";
 import { API_ROUTES } from "../constants";
 import { queryKeys } from "./queryKeys";
-import { request } from "./client";
 
 /**
  * `GET /fighters` — returns `{ count, rows }` from Sequelize's findAndCountAll.
@@ -10,7 +10,8 @@ import { request } from "./client";
  */
 export const fightersQuery = (params) => ({
     queryKey: queryKeys.fighters.list(params),
-    queryFn: ({ signal }) => request(API_ROUTES.Fighter, { params, signal }),
+    queryFn: ({ signal }) =>
+        requestList(API_ROUTES.Fighter, { params, signal }),
 });
 
 export const fighterQuery = (uuid) => ({

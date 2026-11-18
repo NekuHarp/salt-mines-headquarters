@@ -1,5 +1,7 @@
 import { clearCredentials, getAuthHeader } from "../auth/credentialStore";
 
+import { LIST_CHUNK_LIMIT } from "../constants";
+
 import { stringify } from "qs";
 
 /**
@@ -139,4 +141,50 @@ export async function request(
     }
 
     return payload;
+}
+
+/**
+ * `request` for list endpoints (`{ count, rows }`), splitting a large `limit`
+ * into sequential requests of at most `LIST_CHUNK_LIMIT` rows, since one big
+ * request can take the backend down.
+ */
+export async function requestList(path, { params = {}, signal } = {}) {
+    const { limit, offset = 0 } = params;
+
+    if (!(limit > LIST_CHUNK_LIMIT)) {
+        return request(path, { params, signal });
+    }
+
+    const rows = [];
+    let count = 0;
+
+    while (rows.length < limit) {
+        const chunkLimit = Math.min(LIST_CHUNK_LIMIT, limit - rows.length);
+        const page = await request(path, {
+            params: {
+                ...params,
+                offset: offset + rows.length,
+                limit: chunkLimit,
+            },
+            signal,
+        });
+
+        count = page.count;
+        rows.push(...page.rows);
+        if (page.rows.length < chunkLimit) break;
+    }
+
+    return { count, rows: dedupeByUuid(rows) };
+}
+
+// Rows inserted between chunks shift the offsets, which can repeat a row
+// across a chunk boundary.
+function dedupeByUuid(rows) {
+    const seen = new Set();
+    return rows.filter((row) => {
+        if (row?.uuid === undefined) return true;
+        if (seen.has(row.uuid)) return false;
+        seen.add(row.uuid);
+        return true;
+    });
 }

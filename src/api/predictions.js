@@ -1,6 +1,6 @@
+import { request, requestList } from "./client";
 import { API_ROUTES } from "../constants";
 import { queryKeys } from "./queryKeys";
-import { request } from "./client";
 
 /**
  * `GET /predictions` — returns `{ count, rows }`.
@@ -13,7 +13,8 @@ import { request } from "./client";
  */
 export const predictionsQuery = (params) => ({
     queryKey: queryKeys.predictions.list(params),
-    queryFn: ({ signal }) => request(API_ROUTES.Prediction, { params, signal }),
+    queryFn: ({ signal }) =>
+        requestList(API_ROUTES.Prediction, { params, signal }),
 });
 
 export const updatePrediction = ({ uuid, ...body }) =>

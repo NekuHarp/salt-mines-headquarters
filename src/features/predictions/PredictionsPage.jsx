@@ -1,8 +1,9 @@
-import { Alert, Box, Grid, Stack } from "@mui/material";
+import { Alert, Box, Grid, Pagination, Stack } from "@mui/material";
 import { DEFAULT_FILTERS, toQueryParams } from "./filterParams";
 import {
     EMPTY,
     formatCompact,
+    formatInteger,
     formatRatio,
     formatSignedCompact,
 } from "../../utils/format";
@@ -105,23 +106,54 @@ function Kpis({ score, betting }) {
     );
 }
 
+function SamplePager({ count, limit, page, onChange }) {
+    const first = (page - 1) * limit + 1;
+    const last = Math.min(page * limit, count);
+
+    return (
+        <Alert
+            severity="info"
+            variant="outlined"
+            sx={{ alignItems: "center" }}
+            action={
+                <Pagination
+                    count={Math.ceil(count / limit)}
+                    page={page}
+                    onChange={(event, next) => onChange(next)}
+                    size="small"
+                    siblingCount={1}
+                />
+            }
+        >
+            Matches {formatInteger(first)}–{formatInteger(last)} of{" "}
+            {formatInteger(count)}, newest first.
+        </Alert>
+    );
+}
+
 /**
  * Statistics view over the prediction log.
  *
- * Every figure is derived in the browser from one request, so the whole page
- * reflects a single consistent sample rather than several requests that could
- * each land on a different set of matches.
+ * Every figure is derived in the browser from one sample (one page of
+ * `filters.limit` matches, newest first), so the whole page stays consistent.
  */
 export function PredictionsPage() {
     const [filters, setFilters] = useState(DEFAULT_FILTERS);
+    const [page, setPage] = useState(1);
+
+    const changeFilters = (next) => {
+        setFilters(next);
+        setPage(1);
+    };
 
     const params = useMemo(
         () => ({
             ...toQueryParams(filters),
+            offset: (page - 1) * filters.limit,
             fightersInfo: true,
             sort: "-createdAt",
         }),
-        [filters],
+        [filters, page],
     );
 
     const query = useQuery(predictionsQuery(params));
@@ -149,18 +181,18 @@ export function PredictionsPage() {
             subtitle="Prediction accuracy and betting performance over the recorded match log."
         >
             <Stack spacing={2}>
-                <PredictionFilters value={filters} onChange={setFilters} />
+                <PredictionFilters value={filters} onChange={changeFilters} />
 
                 <QueryState query={query} minHeight={320}>
                     {(data) => (
                         <Stack spacing={2}>
                             {data.count > filters.limit ? (
-                                <Alert severity="info" variant="outlined">
-                                    Showing the most recent{" "}
-                                    {formatCompact(filters.limit)} of{" "}
-                                    {formatCompact(data.count)} matches. Narrow
-                                    the date range to analyse an earlier period.
-                                </Alert>
+                                <SamplePager
+                                    count={data.count}
+                                    limit={filters.limit}
+                                    page={page}
+                                    onChange={setPage}
+                                />
                             ) : null}
 
                             <Kpis score={stats.score} betting={stats.betting} />

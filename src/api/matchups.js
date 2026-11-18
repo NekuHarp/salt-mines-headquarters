@@ -1,6 +1,6 @@
+import { request, requestList } from "./client";
 import { API_ROUTES } from "../constants";
 import { queryKeys } from "./queryKeys";
-import { request } from "./client";
 
 /**
  * `GET /matchups` — returns `{ count, rows }`, each row eager-loading its two
@@ -11,7 +11,8 @@ import { request } from "./client";
  */
 export const matchupsQuery = (params) => ({
     queryKey: queryKeys.matchups.list(params),
-    queryFn: ({ signal }) => request(API_ROUTES.Matchup, { params, signal }),
+    queryFn: ({ signal }) =>
+        requestList(API_ROUTES.Matchup, { params, signal }),
 });
 
 export const matchupQuery = (uuid) => ({

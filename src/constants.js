@@ -62,6 +62,9 @@ export const PAGINATION = Object.freeze({
 /** Bounds the API enforces on listener/auto-scrape requests. */
 export const MATCHES_TO_RECORD = Object.freeze({ MIN: 1, MAX: 25 });
 
+/** List requests above this `limit` are split into chunks of this size. */
+export const LIST_CHUNK_LIMIT = 5000;
+
 /** The API's `limit` ceiling (PAGINATION.GENERIC.LIMIT.MAX). */
 export const API_MAX_LIMIT = 1000000;
 
